@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       // Set LoginPage as the starting screen
-      home: Loginpage(),
+      home: LoginPage(),
     );
   }
 }
