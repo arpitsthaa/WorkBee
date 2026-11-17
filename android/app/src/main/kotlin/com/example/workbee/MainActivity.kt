@@ -1,4 +1,4 @@
-package com.arpitshrestha.workbee
+package com.example.workbee
 
 import io.flutter.embedding.android.FlutterActivity
 
