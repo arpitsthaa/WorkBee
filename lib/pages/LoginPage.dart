@@ -1,5 +1,6 @@
-
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -29,12 +30,55 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  void _onLoginPressed() {
+  Future<void> _onLoginPressed() async {
     if (_formKey.currentState!.validate()) {
       String email = _emailController.text.trim();
+      String password = _passwordController.text;
 
-      // TODO: Connect backend authentication
-      print('Logging in with: $email');
+      // Django custom email login endpoint
+      // (10.0.2.2 is localhost for Android Emulators, localhost for iOS simulator)
+      final url = Uri.parse('http://10.0.2.2:8000/api/accounts/login/');
+
+      try {
+        final response = await http.post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'email': email,
+            'password': password,
+          }),
+        );
+
+        if (!mounted) return;
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          String accessToken = data['access'];
+
+          // TODO: Save token securely (e.g., using flutter_secure_storage)
+          print('Login Successful! Access Token: $accessToken');
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Login successful!')),
+          );
+
+          // TODO: Navigate to your main dashboard screen
+          // Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => DashboardScreen()));
+
+        } else {
+          final errorData = jsonDecode(response.body);
+          String errorMessage = errorData['error'] ?? 'Invalid email or password.';
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(errorMessage)),
+          );
+        }
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Network error. Could not connect to backend.')),
+        );
+      }
     }
   }
 
