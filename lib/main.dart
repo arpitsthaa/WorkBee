@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:workbee/pages/LoginPage.dart'; // <-- Import your login page file here
-
+import 'pages/auth/LoginPage.dart';
 void main() {
   runApp(const MyApp());
 }
