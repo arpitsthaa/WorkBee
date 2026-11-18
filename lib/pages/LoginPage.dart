@@ -42,7 +42,7 @@ class _LoginPageState extends State<LoginPage> {
       String password = _passwordController.text;
 
       // Django custom email login endpoint
-      final url = Uri.parse('http://10.0.2.2:8000/api/accounts/login/');
+      final url = Uri.parse('https://workbee-zi7l.onrender.com/api/accounts/login/');
 
       try {
         final response = await http
@@ -91,6 +91,7 @@ class _LoginPageState extends State<LoginPage> {
         }
       } catch (e) {
         if (!mounted) return;
+        print("${e.toString()}");
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Network error. Could not connect to backend.'),
