@@ -41,25 +41,31 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
       });
 
       String name = _nameController.text.trim();
-      String email = _emailController.text.trim();
+      String email = _emailController.text.trim().toLowerCase();
       String password = _passwordController.text;
       String college = _collegeController.text.trim();
 
       // Django student registration endpoint
       // (10.0.2.2 is localhost for Android Emulators, localhost for iOS simulator)
-      final url = Uri.parse('http://10.0.2.2:8000/api/accounts/register/student/');
+      final url =
+      Uri.parse('http://10.0.2.2:8000/api/accounts/register/student/');
 
       try {
-        final response = await http.post(
+        final response = await http
+            .post(
           url,
-          headers: {'Content-Type': 'application/json'},
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
           body: jsonEncode({
             'name': name,
             'email': email,
             'password': password,
             'college': college,
           }),
-        );
+        )
+            .timeout(const Duration(seconds: 15));
 
         if (!mounted) return;
 
@@ -75,8 +81,20 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
           Navigator.pop(context);
         } else {
           final errorData = jsonDecode(response.body);
-          String errorMessage =
-              errorData['error'] ?? errorData['detail'] ?? 'Registration failed. Please check your details.';
+          String errorMessage = 'Registration failed. Please check your details.';
+
+          if (errorData is Map<String, dynamic>) {
+            if (errorData['error'] != null) {
+              errorMessage = errorData['error'].toString();
+            } else if (errorData['detail'] != null) {
+              errorMessage = errorData['detail'].toString();
+            } else if (errorData.isNotEmpty) {
+              final firstError = errorData.values.first;
+              errorMessage = firstError is List
+                  ? firstError.first.toString()
+                  : firstError.toString();
+            }
+          }
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
