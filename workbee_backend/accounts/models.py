@@ -9,8 +9,8 @@ class CustomUser(AbstractUser):
     
     email = models.EmailField(unique=True)
     user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES, default='student')
+    college = models.CharField(max_length=255, blank=True, null=True)
     
-    # Use email as the primary login identifier instead of username
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 

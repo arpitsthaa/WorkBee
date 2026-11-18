@@ -1,20 +1,36 @@
 from rest_framework import serializers
-from django.contrib.auth import get_user_model
+from .models import CustomUser
 
-User = get_user_model()
-
-class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
+class StudentRegistrationSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, min_length=8)
+    college = serializers.CharField(required=True)
 
     class Meta:
-        model = User
-        fields = ('email', 'password', 'user_type', 'username')
+        model = CustomUser
+        fields = ['name', 'email', 'password', 'college']
+
+    def validate_email(self, value):
+        email = value.lower().strip()
+        if CustomUser.objects.filter(email=email).exists():
+            raise serializers.ValidationError("An account with this email already exists.")
+        return email
 
     def create(self, validated_data):
-        user = User.objects.create_user(
-            email=validated_data['email'],
-            username=validated_data.get('username', validated_data['email']),
+        full_name = validated_data.pop('name').strip()
+        name_parts = full_name.split(' ', 1)
+        first_name = name_parts[0]
+        last_name = name_parts[1] if len(name_parts) > 1 else ''
+
+        email = validated_data['email']
+
+        user = CustomUser.objects.create_user(
+            username=email,  # Satisfies AbstractUser's unique username requirement
+            email=email,
             password=validated_data['password'],
-            user_type=validated_data.get('user_type', 'student')
+            first_name=first_name,
+            last_name=last_name,
+            college=validated_data['college'].strip(),
+            user_type='student',
         )
         return user
