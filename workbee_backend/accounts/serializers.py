@@ -1,6 +1,7 @@
+from django.db import transaction
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import CustomUser
+from .models import CustomUser, BusinessProfile
 
 
 class StudentRegistrationSerializer(serializers.ModelSerializer):
@@ -36,6 +37,65 @@ class StudentRegistrationSerializer(serializers.ModelSerializer):
             user_type='student',
         )
         return user
+
+
+class BusinessRegistrationSerializer(serializers.Serializer):
+    business_name = serializers.CharField(max_length=255)
+    contact_person = serializers.CharField(max_length=255)
+    email = serializers.EmailField()
+    phone = serializers.CharField(max_length=20)
+    location = serializers.CharField(max_length=255)
+    pan_number = serializers.CharField(min_length=9, max_length=9)
+    password = serializers.CharField(write_only=True, min_length=8)
+
+    def validate_email(self, value):
+        email = value.lower().strip()
+        if CustomUser.objects.filter(email=email).exists():
+            raise serializers.ValidationError("An account with this email already exists.")
+        return email
+
+    def validate_pan_number(self, value):
+        pan = value.strip()
+        if not pan.isdigit() or len(pan) != 9:
+            raise serializers.ValidationError("PAN number must be exactly 9 digits.")
+        if BusinessProfile.objects.filter(pan_number=pan).exists():
+            raise serializers.ValidationError("This PAN number is already registered.")
+        return pan
+
+    @transaction.atomic
+    def create(self, validated_data):
+        contact_name = validated_data['contact_person'].strip()
+        name_parts = contact_name.split(' ', 1)
+        first_name = name_parts[0]
+        last_name = name_parts[1] if len(name_parts) > 1 else ''
+
+        email = validated_data['email']
+
+        user = CustomUser.objects.create_user(
+            username=email,
+            email=email,
+            password=validated_data['password'],
+            first_name=first_name,
+            last_name=last_name,
+            user_type='business',
+        )
+
+        BusinessProfile.objects.create(
+            user=user,
+            business_name=validated_data['business_name'].strip(),
+            contact_person=contact_name,
+            phone=validated_data['phone'].strip(),
+            location=validated_data['location'].strip(),
+            pan_number=validated_data['pan_number'].strip(),
+        )
+        return user
+
+
+class ForgotPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        return value.lower().strip()
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
