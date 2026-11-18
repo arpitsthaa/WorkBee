@@ -36,7 +36,7 @@ class _StudentDashboardPageState extends State<StudentDashboardPage> {
       _errorMessage = null;
     });
 
-    final url = Uri.parse('http://10.0.2.2:8000/api/student-dashboard/');
+    final url = Uri.parse('https://workbee-zi7l.onrender.com/api/student-dashboard/');
 
     try {
       final response = await http.get(
