@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'accounts',
-]
+    'student_dashboard',]
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
