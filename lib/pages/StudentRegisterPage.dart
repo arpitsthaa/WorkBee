@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class StudentRegistrationPage extends StatefulWidget {
   const StudentRegistrationPage({super.key});
@@ -19,7 +21,9 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _collegeController = TextEditingController();
+
   bool _hidePassword = true;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -30,13 +34,72 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
     super.dispose();
   }
 
-  void _onCreateAccountPressed() {
+  Future<void> _onCreateAccountPressed() async {
     if (_formKey.currentState!.validate()) {
-      // TODO: Arpit will connect backend student registration logic here
+      setState(() {
+        _isLoading = true;
+      });
+
       String name = _nameController.text.trim();
       String email = _emailController.text.trim();
+      String password = _passwordController.text;
       String college = _collegeController.text.trim();
-      print('Registering student: $name ($email) from $college');
+
+      // Django student registration endpoint
+      // (10.0.2.2 is localhost for Android Emulators, localhost for iOS simulator)
+      final url = Uri.parse('http://10.0.2.2:8000/api/accounts/register/student/');
+
+      try {
+        final response = await http.post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'name': name,
+            'email': email,
+            'password': password,
+            'college': college,
+          }),
+        );
+
+        if (!mounted) return;
+
+        if (response.statusCode == 201 || response.statusCode == 200) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Registration successful! Please log in.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          // Navigate back to the LoginPage
+          Navigator.pop(context);
+        } else {
+          final errorData = jsonDecode(response.body);
+          String errorMessage =
+              errorData['error'] ?? errorData['detail'] ?? 'Registration failed. Please check your details.';
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        }
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Network error. Could not connect to backend.'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
     }
   }
 
@@ -171,9 +234,14 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
                         hint: 'Enter your email',
                         icon: Icons.mail_outline_rounded,
                       ),
-                      validator: (val) => val == null || !val.contains('@')
-                          ? 'Please enter a valid email'
-                          : null,
+                      validator: (val) {
+                        if (val == null ||
+                            !RegExp(r'^[^@]+@[^@]+\.[^@]+$')
+                                .hasMatch(val.trim())) {
+                          return 'Please enter a valid email';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 16),
 
@@ -244,22 +312,33 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
                     const SizedBox(height: 28),
 
                     // Create Account Button
-                    ElevatedButton(
-                      onPressed: _onCreateAccountPressed,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryBlue,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                    SizedBox(
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _onCreateAccountPressed,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryBlue,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
                         ),
-                        elevation: 0,
-                      ),
-                      child: const Text(
-                        'Create account',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                        child: _isLoading
+                            ? const SizedBox(
+                          height: 22,
+                          width: 22,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                            : const Text(
+                          'Create account',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
