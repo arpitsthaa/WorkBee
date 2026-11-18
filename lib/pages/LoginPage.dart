@@ -1,5 +1,5 @@
-
 import 'package:flutter/material.dart';
+import 'StudentRegisterPage.dart'; // Make sure this matches your file name
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -9,7 +9,6 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-
   // Color palette
   static const Color primaryBlue = Color(0xFF2563EB);
   static const Color darkNavy = Color(0xFF1E293B);
@@ -51,14 +50,11 @@ class _LoginPageState extends State<LoginPage> {
             ),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 400),
-
               child: Form(
                 key: _formKey,
-
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-
                     // Logo and App Name
                     Row(
                       children: [
@@ -74,9 +70,7 @@ class _LoginPageState extends State<LoginPage> {
                             size: 27,
                           ),
                         ),
-
                         const SizedBox(width: 12),
-
                         const Text(
                           'WorkBee',
                           style: TextStyle(
@@ -145,35 +139,29 @@ class _LoginPageState extends State<LoginPage> {
                           color: Color(0xFF94A3B8),
                           fontSize: 14,
                         ),
-
                         prefixIcon: const Icon(
                           Icons.mail_outline_rounded,
                           color: Color(0xFF8498B8),
                           size: 21,
                         ),
-
                         filled: true,
                         fillColor: Colors.white,
-
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 17,
                         ),
-
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(
                             color: borderColor,
                           ),
                         ),
-
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(
                             color: borderColor,
                           ),
                         ),
-
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(
@@ -182,7 +170,6 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       ),
-
                       validator: (val) {
                         if (val == null ||
                             !RegExp(r'^[^@]+@[^@]+\.[^@]+$')
@@ -211,20 +198,17 @@ class _LoginPageState extends State<LoginPage> {
                     TextFormField(
                       controller: _passwordController,
                       obscureText: _hidePassword,
-
                       decoration: InputDecoration(
                         hintText: 'Enter your password',
                         hintStyle: const TextStyle(
                           color: Color(0xFF94A3B8),
                           fontSize: 14,
                         ),
-
                         prefixIcon: const Icon(
                           Icons.lock_outline_rounded,
                           color: Color(0xFF8498B8),
                           size: 21,
                         ),
-
                         suffixIcon: IconButton(
                           icon: Icon(
                             _hidePassword
@@ -233,36 +217,30 @@ class _LoginPageState extends State<LoginPage> {
                             color: const Color(0xFF8498B8),
                             size: 21,
                           ),
-
                           onPressed: () {
                             setState(() {
                               _hidePassword = !_hidePassword;
                             });
                           },
                         ),
-
                         filled: true,
                         fillColor: Colors.white,
-
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 17,
                         ),
-
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(
                             color: borderColor,
                           ),
                         ),
-
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(
                             color: borderColor,
                           ),
                         ),
-
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(
@@ -271,7 +249,6 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       ),
-
                       validator: (val) {
                         if (val == null || val.isEmpty) {
                           return 'Please enter your password';
@@ -285,19 +262,15 @@ class _LoginPageState extends State<LoginPage> {
                     // Forgot Password
                     Align(
                       alignment: Alignment.centerRight,
-
                       child: TextButton(
                         onPressed: () {
                           // TODO: Forgot password action
                         },
-
                         style: TextButton.styleFrom(
                           padding: EdgeInsets.zero,
                           minimumSize: Size.zero,
-                          tapTargetSize:
-                          MaterialTapTargetSize.shrinkWrap,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
-
                         child: const Text(
                           'Forgot password?',
                           style: TextStyle(
@@ -314,23 +287,17 @@ class _LoginPageState extends State<LoginPage> {
                     // Login Button
                     SizedBox(
                       height: 50,
-
                       child: ElevatedButton(
                         onPressed: _onLoginPressed,
-
                         style: ElevatedButton.styleFrom(
                           backgroundColor: primaryBlue,
                           foregroundColor: Colors.white,
-
                           elevation: 3,
-
                           shadowColor: primaryBlue.withOpacity(0.25),
-
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-
                         child: const Text(
                           'Log in',
                           style: TextStyle(
@@ -359,35 +326,34 @@ class _LoginPageState extends State<LoginPage> {
                     // Student Registration
                     SizedBox(
                       height: 48,
-
                       child: OutlinedButton(
                         onPressed: () {
-                          // TODO: Student Registration navigation
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                              const StudentRegistrationPage(),
+                            ),
+                          );
                         },
-
                         style: OutlinedButton.styleFrom(
                           backgroundColor: Colors.white,
-
                           side: const BorderSide(
                             color: borderColor,
                           ),
-
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(11),
                           ),
                         ),
-
-                        child: Row(
+                        child: const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
+                          children: [
                             Icon(
                               Icons.school_outlined,
                               size: 20,
                               color: primaryBlue,
                             ),
-
                             SizedBox(width: 10),
-
                             Text(
                               'Student Registration',
                               style: TextStyle(
@@ -406,35 +372,28 @@ class _LoginPageState extends State<LoginPage> {
                     // Business Registration
                     SizedBox(
                       height: 48,
-
                       child: OutlinedButton(
                         onPressed: () {
                           // TODO: Business Registration navigation
                         },
-
                         style: OutlinedButton.styleFrom(
                           backgroundColor: Colors.white,
-
                           side: const BorderSide(
                             color: borderColor,
                           ),
-
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(11),
                           ),
                         ),
-
-                        child: Row(
+                        child: const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
+                          children: [
                             Icon(
                               Icons.storefront_outlined,
                               size: 20,
                               color: Color(0xFFD97706),
                             ),
-
                             SizedBox(width: 10),
-
                             Text(
                               'Business Registration',
                               style: TextStyle(
@@ -447,7 +406,6 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                     ),
-
                   ],
                 ),
               ),
