@@ -29,3 +29,4 @@ social-auth-core==6.2.0
 sqlparse==0.6.1
 tzdata==2026.4
 urllib3==2.8.0
+whitenoise==6.12.0
