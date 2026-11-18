@@ -19,3 +19,20 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return f"{self.email} ({self.user_type})"
+
+
+class BusinessProfile(models.Model):
+    user = models.OneToOneField(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='business_profile'
+    )
+    business_name = models.CharField(max_length=255)
+    contact_person = models.CharField(max_length=255)
+    phone = models.CharField(max_length=20)
+    location = models.CharField(max_length=255)
+    pan_number = models.CharField(max_length=9, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.business_name} ({self.user.email})"
