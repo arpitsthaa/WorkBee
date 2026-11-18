@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'StudentRegisterPage.dart';
+import 'StudentDashboardPage.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -22,6 +23,7 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
 
   bool _hidePassword = true;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -32,52 +34,75 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _onLoginPressed() async {
     if (_formKey.currentState!.validate()) {
-      String email = _emailController.text.trim();
+      setState(() {
+        _isLoading = true;
+      });
+
+      String email = _emailController.text.trim().toLowerCase();
       String password = _passwordController.text;
 
       // Django custom email login endpoint
-      // (10.0.2.2 is localhost for Android Emulators, localhost for iOS simulator)
       final url = Uri.parse('http://10.0.2.2:8000/api/accounts/login/');
 
       try {
-        final response = await http.post(
+        final response = await http
+            .post(
           url,
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
             'email': email,
             'password': password,
           }),
-        );
+        )
+            .timeout(const Duration(seconds: 15));
 
         if (!mounted) return;
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
           String accessToken = data['access'];
+          String userType = data['user_type'] ?? 'student';
 
-          // TODO: Save token securely (e.g., using flutter_secure_storage)
-          print('Login Successful! Access Token: $accessToken');
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Login successful!')),
-          );
-
-          // TODO: Navigate to your main dashboard screen
-          // Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => DashboardScreen()));
-
+          if (userType == 'student') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => StudentDashboardPage(accessToken: accessToken),
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Business dashboard is coming soon.'),
+              ),
+            );
+          }
         } else {
           final errorData = jsonDecode(response.body);
-          String errorMessage = errorData['error'] ?? 'Invalid email or password.';
+          String errorMessage =
+              errorData['error'] ?? errorData['detail'] ?? 'Invalid email or password.';
 
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(errorMessage)),
+            SnackBar(
+              content: Text(errorMessage),
+              backgroundColor: Colors.redAccent,
+            ),
           );
         }
       } catch (e) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Network error. Could not connect to backend.')),
+          const SnackBar(
+            content: Text('Network error. Could not connect to backend.'),
+            backgroundColor: Colors.redAccent,
+          ),
         );
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     }
   }
@@ -333,7 +358,7 @@ class _LoginPageState extends State<LoginPage> {
                     SizedBox(
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: _onLoginPressed,
+                        onPressed: _isLoading ? null : _onLoginPressed,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: primaryBlue,
                           foregroundColor: Colors.white,
@@ -343,7 +368,16 @@ class _LoginPageState extends State<LoginPage> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text(
+                        child: _isLoading
+                            ? const SizedBox(
+                          height: 22,
+                          width: 22,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                            : const Text(
                           'Log in',
                           style: TextStyle(
                             fontSize: 16,
@@ -372,7 +406,9 @@ class _LoginPageState extends State<LoginPage> {
                     SizedBox(
                       height: 48,
                       child: OutlinedButton(
-                        onPressed: () {
+                        onPressed: _isLoading
+                            ? null
+                            : () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
