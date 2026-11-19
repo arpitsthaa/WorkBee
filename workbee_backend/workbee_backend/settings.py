@@ -10,14 +10,25 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 
+import dj_database_url
+from dotenv import load_dotenv
+
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR.parent / '.env')
 
-SECRET_KEY = 'django-insecure-b^-!ixuhqru3+rpph(msd5%@%t70qmrw)2-!*l8qci+%t#fu_x'
-DEBUG = True
+SECRET_KEY = os.environ.get(
+    'SECRET_KEY',
+    'django-insecure-b^-!ixuhqru3+rpph(msd5%@%t70qmrw)2-!*l8qci+%t#fu_x',
+)
+DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.environ.get(
+    'ALLOWED_HOSTS',
+    'localhost,127.0.0.1',
+).split(',')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -65,11 +76,22 @@ TEMPLATES = [
 WSGI_APPLICATION = 'workbee_backend.wsgi.application'
 
 
+database_url = os.environ.get(
+    'DATABASE_URL',
+    f'sqlite:///{BASE_DIR / "db.sqlite3"}',
+)
+for postgres_marker in ('postgresql://', 'postgres://'):
+    marker_index = database_url.find(postgres_marker)
+    if marker_index >= 0:
+        database_url = database_url[marker_index:].strip().strip('"\'')
+        break
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=database_url,
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 
