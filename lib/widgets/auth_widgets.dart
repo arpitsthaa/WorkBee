@@ -48,7 +48,7 @@ class WorkBeeBrandHeader extends StatelessWidget {
             ),
           ],
         ),
-        if (trailingBadge != null) trailingBadge!,
+        ?trailingBadge,
       ],
     );
   }
@@ -71,7 +71,7 @@ class WorkBeeRoleBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -114,10 +114,12 @@ class WorkBeeSectionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: WorkBeeTheme.borderColor.withOpacity(0.8)),
+        border: Border.all(
+          color: WorkBeeTheme.borderColor.withValues(alpha: 0.8),
+        ),
         boxShadow: [
           BoxShadow(
-            color: WorkBeeTheme.darkNavy.withOpacity(0.04),
+            color: WorkBeeTheme.darkNavy.withValues(alpha: 0.04),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -131,7 +133,7 @@ class WorkBeeSectionCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: accentColor.withOpacity(0.1),
+                  color: accentColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(9),
                 ),
                 child: Icon(sectionIcon, size: 18, color: accentColor),
@@ -297,7 +299,7 @@ class WorkBeePrimaryButton extends StatelessWidget {
           backgroundColor: WorkBeeTheme.primaryBlue,
           foregroundColor: Colors.white,
           elevation: 3,
-          shadowColor: WorkBeeTheme.primaryBlue.withOpacity(0.3),
+          shadowColor: WorkBeeTheme.primaryBlue.withValues(alpha: 0.3),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../auth_widgets.dart';
-import '../../auth_service.dart';
-import '../StudentDashboardPage.dart';
-import 'StudentRegisterPage.dart';
+import '../../widgets/auth_widgets.dart';
+import '../../services/auth_service.dart';
+import '../../controllers/auth_controller.dart';
+import '../student/dashboard_page.dart';
+import 'student_register_page.dart';
 import 'forgot_password_page.dart';
-import 'business_registration_page.dart';
+import 'business_register_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -14,13 +15,25 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final _controller = AuthController();
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_refresh);
+  }
+
+  void _refresh() {
+    if (mounted) setState(() {});
+  }
 
   @override
   void dispose() {
+    _controller.removeListener(_refresh);
+    _controller.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -29,19 +42,12 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _onLoginPressed() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
-
-    final result = await WorkBeeAuthService.post(
-      'login/',
-      {
-        'email': _emailController.text.trim().toLowerCase(),
-        'password': _passwordController.text,
-      },
-      defaultErrorMessage: 'Invalid email or password.',
+    final result = await _controller.login(
+      _emailController.text,
+      _passwordController.text,
     );
 
     if (!mounted) return;
-    setState(() => _isLoading = false);
 
     if (result.success && result.data != null) {
       final accessToken = result.data!['access'];
@@ -55,13 +61,19 @@ class _LoginPageState extends State<LoginPage> {
           ),
         );
       } else {
-        WorkBeeAuthService.showSnackBar(
-          context,
-          'Business dashboard is coming soon.',
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Business dashboard is coming soon.'),
+          ),
         );
       }
     } else {
-      WorkBeeAuthService.showSnackBar(context, result.message, isError: true);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.message),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
     }
   }
 
@@ -133,7 +145,7 @@ class _LoginPageState extends State<LoginPage> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: _isLoading
+                        onPressed: _controller.isLoading
                             ? null
                             : () {
                           Navigator.push(
@@ -161,7 +173,7 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(height: 22),
                     WorkBeePrimaryButton(
                       text: 'Log in',
-                      isLoading: _isLoading,
+                      isLoading: _controller.isLoading,
                       onPressed: _onLoginPressed,
                     ),
                     const SizedBox(height: 30),
@@ -207,7 +219,7 @@ class _LoginPageState extends State<LoginPage> {
     return SizedBox(
       height: 48,
       child: OutlinedButton(
-        onPressed: _isLoading
+        onPressed: _controller.isLoading
             ? null
             : () {
           Navigator.push(

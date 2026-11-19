@@ -1,15 +1,6 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'auth_widgets.dart';
-
-class AuthResult {
-  final bool success;
-  final String message;
-  final Map<String, dynamic>? data;
-
-  AuthResult({required this.success, required this.message, this.data});
-}
+import '../models/auth_result.dart';
 
 class WorkBeeAuthService {
   static const String _baseUrl = 'https://workbee-zi7l.onrender.com/api/accounts';
@@ -20,20 +11,6 @@ class WorkBeeAuthService {
       return 'Please enter a valid email address';
     }
     return null;
-  }
-
-  static void showSnackBar(
-      BuildContext context,
-      String message, {
-        bool isError = false,
-      }) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor:
-        isError ? Colors.redAccent : WorkBeeTheme.successGreen,
-      ),
-    );
   }
 
   static Future<AuthResult> post(
