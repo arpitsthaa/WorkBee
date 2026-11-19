@@ -20,11 +20,9 @@ class StudentRegistrationSerializer(serializers.ModelSerializer):
         return email
 
     def create(self, validated_data):
-        full_name = validated_data.pop('name').strip()
-        name_parts = full_name.split(' ', 1)
-        first_name = name_parts[0]
-        last_name = name_parts[1] if len(name_parts) > 1 else ''
-
+        name = validated_data.pop('name').strip().split(' ', 1)
+        first_name = name[0]
+        last_name = name[1] if len(name) > 1 else ''
         email = validated_data['email']
 
         user = CustomUser.objects.create_user(
@@ -65,18 +63,15 @@ class BusinessRegistrationSerializer(serializers.Serializer):
     @transaction.atomic
     def create(self, validated_data):
         contact_name = validated_data['contact_person'].strip()
-        name_parts = contact_name.split(' ', 1)
-        first_name = name_parts[0]
-        last_name = name_parts[1] if len(name_parts) > 1 else ''
-
+        name = contact_name.split(' ', 1)
         email = validated_data['email']
 
         user = CustomUser.objects.create_user(
             username=email,
             email=email,
             password=validated_data['password'],
-            first_name=first_name,
-            last_name=last_name,
+            first_name=name[0],
+            last_name=name[1] if len(name) > 1 else '',
             user_type='business',
         )
 

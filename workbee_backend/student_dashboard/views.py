@@ -10,21 +10,26 @@ class StudentDashboardView(APIView):
     def get(self, request):
         user = request.user
 
-        first_name = user.first_name.strip() if user.first_name else user.email.split('@')[0]
-        last_initial = user.last_name.strip()[0].upper() if user.last_name.strip() else ''
-        initials = f"{first_name[0].upper()}{last_initial}" if first_name else "WB"
+        first_name = user.first_name.strip()
+        if not first_name:
+            first_name = user.email.split('@')[0]
+
+        last_name = user.last_name.strip()
+        initials = first_name[0].upper()
+        if last_name:
+            initials += last_name[0].upper()
 
         checks = [
             bool(user.first_name),
             bool(user.email),
             bool(user.college),
-            bool(getattr(user, 'bio', '')),
-            bool(getattr(user, 'portfolio_url', '')),
+            bool(user.bio),
+            bool(user.portfolio_url),
         ]
         completion = int((sum(checks) / len(checks)) * 100)
-        if not getattr(user, 'portfolio_url', ''):
+        if not user.portfolio_url:
             profile_tip = "Add one more portfolio sample to stand out."
-        elif not getattr(user, 'bio', ''):
+        elif not user.bio:
             profile_tip = "Add a short bio so businesses know your skills."
         else:
             profile_tip = "Your profile is complete and ready for top gigs."
@@ -43,19 +48,13 @@ class StudentDashboardView(APIView):
             for gig in gigs_qs
         ]
 
-        user_apps = Application.objects.filter(student=user)
-        user_projects = Project.objects.filter(student=user)
+        applications = Application.objects.filter(student=user)
+        projects = Project.objects.filter(student=user)
 
-        apps_total = user_apps.count()
-        apps_pending = user_apps.filter(status='pending').count()
-        apps_shortlisted = user_apps.filter(status='shortlisted').count()
-
-        projects_total = user_projects.count()
-        projects_active = user_projects.filter(status='active').count()
-        projects_approved = user_projects.filter(status='approved').count()
-
-        avg_rating = user_projects.filter(rating__isnull=False).aggregate(Avg('rating'))['rating__avg']
-        formatted_rating = round(float(avg_rating), 1) if avg_rating is not None else 0.0
+        avg_rating = projects.filter(rating__isnull=False).aggregate(Avg('rating'))
+        avg_rating = avg_rating['rating__avg']
+        if avg_rating is None:
+            avg_rating = 0.0
 
         return Response({
             'first_name': first_name,
@@ -65,17 +64,17 @@ class StudentDashboardView(APIView):
             'profile_tip': profile_tip,
             'recommended_gigs': recommended_gigs,
             'applications': {
-                'total': apps_total,
-                'pending': apps_pending,
-                'shortlisted': apps_shortlisted,
+                'total': applications.count(),
+                'pending': applications.filter(status='pending').count(),
+                'shortlisted': applications.filter(status='shortlisted').count(),
             },
             'projects': {
-                'total': projects_total,
-                'active': projects_active,
-                'approved': projects_approved,
+                'total': projects.count(),
+                'active': projects.filter(status='active').count(),
+                'approved': projects.filter(status='approved').count(),
             },
             'passport': {
-                'verified_projects': projects_approved,
-                'average_rating': formatted_rating,
+                'verified_projects': projects.filter(status='approved').count(),
+                'average_rating': round(float(avg_rating), 1),
             }
         })

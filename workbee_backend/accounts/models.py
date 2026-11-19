@@ -3,10 +3,10 @@ from django.db import models
 
 
 class CustomUser(AbstractUser):
-    USER_TYPE_CHOICES = (
+    USER_TYPE_CHOICES = [
         ('student', 'Student'),
         ('business', 'Business'),
-    )
+    ]
 
     email = models.EmailField(unique=True)
     user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES, default='student')
@@ -23,11 +23,8 @@ class CustomUser(AbstractUser):
 
 
 class BusinessProfile(models.Model):
-    user = models.OneToOneField(
-        CustomUser,
-        on_delete=models.CASCADE,
-        related_name='business_profile'
-    )
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE,
+                                related_name='business_profile')
     business_name = models.CharField(max_length=255)
     contact_person = models.CharField(max_length=255)
     phone = models.CharField(max_length=20)

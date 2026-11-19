@@ -1,5 +1,5 @@
-from django.conf import settings
 from django.db import models
+from django.conf import settings
 
 class Gig(models.Model):
     title = models.CharField(max_length=200)
@@ -16,11 +16,11 @@ class Gig(models.Model):
 
 
 class Application(models.Model):
-    STATUS_CHOICES = (
+    STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('shortlisted', 'Shortlisted'),
         ('rejected', 'Rejected'),
-    )
+    ]
     student = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -35,10 +35,10 @@ class Application(models.Model):
 
 
 class Project(models.Model):
-    STATUS_CHOICES = (
+    STATUS_CHOICES = [
         ('active', 'Active'),
         ('approved', 'Approved'),
-    )
+    ]
     student = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

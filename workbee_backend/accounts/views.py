@@ -3,7 +3,6 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -22,18 +21,12 @@ class StudentRegisterView(APIView):
 
     def post(self, request):
         serializer = StudentRegistrationSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {'message': 'Student registered successfully'},
-                status=status.HTTP_201_CREATED
-            )
+        if not serializer.is_valid():
+            error = next(iter(serializer.errors.values()))[0]
+            return Response({'error': str(error)}, status=400)
 
-        first_error = next(iter(serializer.errors.values()))[0]
-        return Response(
-            {'error': str(first_error)},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        serializer.save()
+        return Response({'message': 'Student registered successfully'}, status=201)
 
 
 class BusinessRegisterView(APIView):
@@ -41,18 +34,12 @@ class BusinessRegisterView(APIView):
 
     def post(self, request):
         serializer = BusinessRegistrationSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {'message': 'Business registered successfully'},
-                status=status.HTTP_201_CREATED
-            )
+        if not serializer.is_valid():
+            error = next(iter(serializer.errors.values()))[0]
+            return Response({'error': str(error)}, status=400)
 
-        first_error = next(iter(serializer.errors.values()))[0]
-        return Response(
-            {'error': str(first_error)},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        serializer.save()
+        return Response({'message': 'Business registered successfully'}, status=201)
 
 
 class ForgotPasswordView(APIView):
@@ -77,16 +64,12 @@ class ForgotPasswordView(APIView):
                     fail_silently=True,
                 )
 
-            return Response(
-                {'message': 'If an account exists with this email, a reset link has been sent.'},
-                status=status.HTTP_200_OK
-            )
+            return Response({
+                'message': 'If an account exists with this email, a reset link has been sent.'
+            })
 
-        first_error = next(iter(serializer.errors.values()))[0]
-        return Response(
-            {'error': str(first_error)},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        error = next(iter(serializer.errors.values()))[0]
+        return Response({'error': str(error)}, status=400)
 
 
 class CustomLoginView(TokenObtainPairView):
