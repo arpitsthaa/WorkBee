@@ -24,9 +24,15 @@ class Application(models.Model):
     student = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='applications'
+        related_name='applications',
+        db_constraint=False,
     )
-    gig = models.ForeignKey(Gig, on_delete=models.CASCADE, related_name='applications')
+    gig = models.ForeignKey(
+        Gig,
+        on_delete=models.CASCADE,
+        related_name='applications',
+        db_constraint=False,
+    )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     applied_at = models.DateTimeField(auto_now_add=True)
 
@@ -42,9 +48,10 @@ class Project(models.Model):
     student = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='projects'
+        related_name='projects',
+        db_constraint=False,
     )
-    gig = models.ForeignKey(Gig, on_delete=models.CASCADE)
+    gig = models.ForeignKey(Gig, on_delete=models.CASCADE, db_constraint=False)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
     rating = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
 

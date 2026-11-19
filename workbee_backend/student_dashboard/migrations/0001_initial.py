@@ -34,8 +34,8 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('status', models.CharField(choices=[('pending', 'Pending'), ('shortlisted', 'Shortlisted'), ('rejected', 'Rejected')], default='pending', max_length=20)),
                 ('applied_at', models.DateTimeField(auto_now_add=True)),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='applications', to=settings.AUTH_USER_MODEL)),
-                ('gig', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='applications', to='student_dashboard.gig')),
+                ('student', models.ForeignKey(db_constraint=False, on_delete=django.db.models.deletion.CASCADE, related_name='applications', to=settings.AUTH_USER_MODEL)),
+                ('gig', models.ForeignKey(db_constraint=False, on_delete=django.db.models.deletion.CASCADE, related_name='applications', to='student_dashboard.gig')),
             ],
         ),
         migrations.CreateModel(
@@ -44,8 +44,8 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('status', models.CharField(choices=[('active', 'Active'), ('approved', 'Approved')], default='active', max_length=20)),
                 ('rating', models.DecimalField(blank=True, decimal_places=1, max_digits=3, null=True)),
-                ('gig', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='student_dashboard.gig')),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='projects', to=settings.AUTH_USER_MODEL)),
+                ('gig', models.ForeignKey(db_constraint=False, on_delete=django.db.models.deletion.CASCADE, to='student_dashboard.gig')),
+                ('student', models.ForeignKey(db_constraint=False, on_delete=django.db.models.deletion.CASCADE, related_name='projects', to=settings.AUTH_USER_MODEL)),
             ],
         ),
     ]

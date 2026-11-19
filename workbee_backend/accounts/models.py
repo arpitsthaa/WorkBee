@@ -24,7 +24,8 @@ class CustomUser(AbstractUser):
 
 class BusinessProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE,
-                                related_name='business_profile')
+                                related_name='business_profile',
+                                db_constraint=False)
     business_name = models.CharField(max_length=255)
     contact_person = models.CharField(max_length=255)
     phone = models.CharField(max_length=20)

@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 ('location', models.CharField(max_length=255)),
                 ('pan_number', models.CharField(max_length=9, unique=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='business_profile', to=settings.AUTH_USER_MODEL)),
+                ('user', models.OneToOneField(db_constraint=False, on_delete=django.db.models.deletion.CASCADE, related_name='business_profile', to=settings.AUTH_USER_MODEL)),
             ],
         ),
     ]
