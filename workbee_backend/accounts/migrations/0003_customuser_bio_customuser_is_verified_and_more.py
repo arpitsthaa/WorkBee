@@ -14,12 +14,6 @@ def add_profile_fields(apps, schema_editor):
             "UPDATE accounts_customuser SET bio = '' WHERE bio IS NULL",
             'UPDATE accounts_customuser SET is_verified = TRUE WHERE is_verified IS NULL',
             "UPDATE accounts_customuser SET portfolio_url = '' WHERE portfolio_url IS NULL",
-            "ALTER TABLE accounts_customuser ALTER COLUMN bio SET DEFAULT ''",
-            'ALTER TABLE accounts_customuser ALTER COLUMN bio SET NOT NULL',
-            'ALTER TABLE accounts_customuser ALTER COLUMN is_verified SET DEFAULT TRUE',
-            'ALTER TABLE accounts_customuser ALTER COLUMN is_verified SET NOT NULL',
-            "ALTER TABLE accounts_customuser ALTER COLUMN portfolio_url SET DEFAULT ''",
-            'ALTER TABLE accounts_customuser ALTER COLUMN portfolio_url SET NOT NULL',
         ]
         for statement in statements:
             schema_editor.execute(statement)
