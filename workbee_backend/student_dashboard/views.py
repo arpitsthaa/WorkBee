@@ -110,11 +110,11 @@ class GigListView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        business_profile = getattr(request.user, 'business_profile', None)
-        if business_profile:
-            business_name = business_profile.business_name
-        else:
-            business_name = request.user.first_name.strip() or 'Business'
+        business_name = getattr(
+            getattr(request.user, 'business_profile', None),
+            'business_name',
+            request.user.first_name or 'Business',
+        )
 
         gig = Gig.objects.create(
             owner=request.user,
@@ -200,30 +200,17 @@ class StudentDashboardView(APIView):
         if last_name:
             initials += last_name[0].upper()
 
-        student_profile = getattr(user, 'student_profile', None)
-        college = (
-            student_profile.college
-            if student_profile
-            else getattr(user, 'college', '')
-        )
-        bio = student_profile.bio if student_profile else getattr(user, 'bio', '')
-        portfolio_url = (
-            student_profile.portfolio_url
-            if student_profile
-            else getattr(user, 'portfolio_url', '')
-        )
-
         checks = [
             bool(user.first_name),
             bool(user.email),
-            bool(college),
-            bool(bio),
-            bool(portfolio_url),
+            bool(user.college),
+            bool(user.bio),
+            bool(user.portfolio_url),
         ]
         completion = int((sum(checks) / len(checks)) * 100)
-        if not portfolio_url:
+        if not user.portfolio_url:
             profile_tip = "Add one more portfolio sample to stand out."
-        elif not bio:
+        elif not user.bio:
             profile_tip = "Add a short bio so businesses know your skills."
         else:
             profile_tip = "Your profile is complete and ready for top gigs."
@@ -248,31 +235,10 @@ class StudentDashboardView(APIView):
         return Response({
             'first_name': first_name,
             'initials': initials,
-            'email': user.email,
             'is_verified': getattr(user, 'is_verified', True),
             'profile_completion': completion,
             'profile_tip': profile_tip,
             'recommended_gigs': recommended_gigs,
-            'applications_detail': [
-                {
-                    'gig_title': application.gig.title,
-                    'business_name': application.gig.business_name,
-                    'status': application.status,
-                    'status_label': dict(Application.STATUS_CHOICES).get(application.status, application.status),
-                    'applied_at': application.applied_at.isoformat(),
-                }
-                for application in applications.select_related('gig').order_by('-applied_at')
-            ],
-            'projects_detail': [
-                {
-                    'gig_title': project.gig.title,
-                    'business_name': project.gig.business_name,
-                    'status': project.status,
-                    'status_label': dict(Project.STATUS_CHOICES).get(project.status, project.status),
-                    'rating': float(project.rating) if project.rating is not None else None,
-                }
-                for project in projects.select_related('gig').order_by('-id')
-            ],
             'applications': {
                 'total': applications.count(),
                 'pending': applications.filter(status='pending').count(),

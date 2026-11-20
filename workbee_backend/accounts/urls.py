@@ -5,8 +5,6 @@ from .views import (
     BusinessRegisterView,
     ForgotPasswordView,
     CustomLoginView,
-    StudentProfileView,
-    BusinessProfileView,
 )
 
 urlpatterns = [
@@ -15,6 +13,4 @@ urlpatterns = [
     path('forgot-password/', ForgotPasswordView.as_view(), name='forgot_password'),
     path('login/', CustomLoginView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('profile/student/', StudentProfileView.as_view(), name='student_profile'),
-    path('profile/business/', BusinessProfileView.as_view(), name='business_profile'),
 ]
