@@ -3,17 +3,94 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .models import CustomUser
+from .models import CustomUser, StudentProfile, BusinessProfile
 from .serializers import (
     StudentRegistrationSerializer,
     BusinessRegistrationSerializer,
     ForgotPasswordSerializer,
     CustomTokenObtainPairSerializer,
+    StudentProfileUpdateSerializer,
+    BusinessProfileUpdateSerializer,
 )
+
+
+class StudentProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if request.user.user_type != 'student':
+            return Response({'error': 'This account is not a student.'}, status=403)
+
+        profile, _ = StudentProfile.objects.get_or_create(
+            user=request.user,
+            defaults={
+                'full_name': request.user.get_full_name(),
+                'college': getattr(request.user, 'college', '') or '',
+            },
+        )
+        serializer = StudentProfileUpdateSerializer(profile)
+        return Response(serializer.data)
+
+    def patch(self, request):
+        if request.user.user_type != 'student':
+            return Response({'error': 'This account is not a student.'}, status=403)
+
+        profile, _ = StudentProfile.objects.get_or_create(
+            user=request.user,
+            defaults={
+                'full_name': request.user.get_full_name(),
+                'college': getattr(request.user, 'college', '') or '',
+            },
+        )
+        serializer = StudentProfileUpdateSerializer(
+            profile,
+            data=request.data,
+            partial=True,
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'Profile updated.', 'profile': serializer.data})
+        error = next(iter(serializer.errors.values()))[0]
+        return Response({'error': str(error)}, status=400)
+
+
+class BusinessProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if request.user.user_type != 'business':
+            return Response({'error': 'This account is not a business.'}, status=403)
+
+        try:
+            profile = BusinessProfile.objects.get(user=request.user)
+        except BusinessProfile.DoesNotExist:
+            return Response({'error': 'Business profile was not found.'}, status=404)
+        serializer = BusinessProfileUpdateSerializer(profile)
+        return Response(serializer.data)
+
+    def patch(self, request):
+        if request.user.user_type != 'business':
+            return Response({'error': 'This account is not a business.'}, status=403)
+
+        try:
+            profile = BusinessProfile.objects.get(user=request.user)
+        except BusinessProfile.DoesNotExist:
+            return Response({'error': 'Business profile was not found.'}, status=404)
+
+        serializer = BusinessProfileUpdateSerializer(
+            profile,
+            data=request.data,
+            partial=True,
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'Profile updated.', 'profile': serializer.data})
+        error = next(iter(serializer.errors.values()))[0]
+        return Response({'error': str(error)}, status=400)
 
 
 class StudentRegisterView(APIView):

@@ -20,7 +20,8 @@ class StudentRegistrationSerializer(serializers.ModelSerializer):
         return email
 
     def create(self, validated_data):
-        name = validated_data.pop('name').strip().split(' ', 1)
+        full_name = validated_data.pop('name').strip()
+        name = full_name.split(' ', 1)
         first_name = name[0]
         last_name = name[1] if len(name) > 1 else ''
         email = validated_data['email']
@@ -31,11 +32,11 @@ class StudentRegistrationSerializer(serializers.ModelSerializer):
             password=validated_data['password'],
             first_name=first_name,
             last_name=last_name,
-            college=validated_data['college'].strip(),
             user_type='student',
         )
         StudentProfile.objects.create(
             user=user,
+            full_name=full_name,
             college=validated_data['college'].strip(),
         )
         return user
@@ -102,3 +103,26 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data['user_type'] = self.user.user_type
         data['is_admin'] = self.user.is_staff and self.user.email.lower() == 'admin@gmail.com'
         return data
+
+
+class StudentProfileUpdateSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(source='user.email', read_only=True)
+
+    class Meta:
+        model = StudentProfile
+        fields = ['email', 'full_name', 'college', 'bio', 'portfolio_url']
+
+
+class BusinessProfileUpdateSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(source='user.email', read_only=True)
+
+    class Meta:
+        model = BusinessProfile
+        fields = [
+            'email',
+            'business_name',
+            'contact_person',
+            'phone',
+            'location',
+            'pan_number',
+        ]

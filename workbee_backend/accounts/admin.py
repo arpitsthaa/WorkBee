@@ -33,11 +33,24 @@ class CustomUserAdmin(UserAdmin):
         }),
     )
 
-    def get_inline_instances(self, request, obj=None):
+    def get_inlines(self, request, obj=None):
         if obj is None:
             return []
         if obj.user_type == 'student':
-            return [StudentProfileInline(self.model, self.admin_site)]
+            return [StudentProfileInline]
         if obj.user_type == 'business':
-            return [BusinessProfileInline(self.model, self.admin_site)]
+            return [BusinessProfileInline]
         return []
+
+
+@admin.register(StudentProfile)
+class StudentProfileAdmin(admin.ModelAdmin):
+    list_display = ('full_name', 'college', 'is_verified', 'user')
+    list_filter = ('is_verified',)
+    search_fields = ('full_name', 'college', 'user__email')
+
+
+@admin.register(BusinessProfile)
+class BusinessProfileAdmin(admin.ModelAdmin):
+    list_display = ('business_name', 'contact_person', 'phone', 'location', 'pan_number', 'user')
+    search_fields = ('business_name', 'contact_person', 'phone', 'location', 'pan_number', 'user__email')

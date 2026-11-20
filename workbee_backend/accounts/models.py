@@ -11,15 +11,6 @@ class CustomUser(AbstractUser):
 
     email = models.EmailField(unique=True)
     user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES, default='student')
-    college = models.CharField(max_length=255, blank=True, null=True)
-    is_verified = models.BooleanField(default=True)
-    bio = models.TextField(blank=True, default='')
-    portfolio_url = models.URLField(blank=True, default='')
-    business_name = models.CharField(max_length=255, blank=True, default='')
-    contact_person = models.CharField(max_length=255, blank=True, default='')
-    phone = models.CharField(max_length=20, blank=True, default='')
-    location = models.CharField(max_length=255, blank=True, default='')
-    pan_number = models.CharField(max_length=9, blank=True, default='')
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
@@ -42,6 +33,7 @@ class StudentProfile(models.Model):
         on_delete=models.CASCADE,
         related_name='student_profile',
     )
+    full_name = models.CharField(max_length=255, blank=True, default='')
     college = models.CharField(max_length=255, blank=True, default='')
     is_verified = models.BooleanField(default=True)
     bio = models.TextField(blank=True, default='')

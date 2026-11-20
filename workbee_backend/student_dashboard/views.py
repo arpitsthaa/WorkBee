@@ -201,12 +201,16 @@ class StudentDashboardView(APIView):
             initials += last_name[0].upper()
 
         student_profile = getattr(user, 'student_profile', None)
-        college = student_profile.college if student_profile else user.college
-        bio = student_profile.bio if student_profile else user.bio
+        college = (
+            student_profile.college
+            if student_profile
+            else getattr(user, 'college', '')
+        )
+        bio = student_profile.bio if student_profile else getattr(user, 'bio', '')
         portfolio_url = (
             student_profile.portfolio_url
             if student_profile
-            else user.portfolio_url
+            else getattr(user, 'portfolio_url', '')
         )
 
         checks = [
