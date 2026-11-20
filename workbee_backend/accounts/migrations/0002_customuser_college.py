@@ -3,6 +3,31 @@
 from django.db import migrations, models
 
 
+def add_college(apps, schema_editor):
+    if schema_editor.connection.vendor == 'postgresql':
+        schema_editor.execute(
+            'ALTER TABLE accounts_customuser ADD COLUMN IF NOT EXISTS college varchar(255) NULL'
+        )
+        return
+
+    CustomUser = apps.get_model('accounts', 'CustomUser')
+    college = models.CharField(blank=True, max_length=255, null=True)
+    college.set_attributes_from_name('college')
+    schema_editor.add_field(CustomUser, college)
+
+
+def remove_college(apps, schema_editor):
+    if schema_editor.connection.vendor == 'postgresql':
+        schema_editor.execute(
+            'ALTER TABLE accounts_customuser DROP COLUMN IF EXISTS college'
+        )
+        return
+
+    CustomUser = apps.get_model('accounts', 'CustomUser')
+    college = CustomUser._meta.get_field('college')
+    schema_editor.remove_field(CustomUser, college)
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -10,9 +35,16 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='customuser',
-            name='college',
-            field=models.CharField(blank=True, max_length=255, null=True),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunPython(add_college, remove_college),
+            ],
+            state_operations=[
+                migrations.AddField(
+                    model_name='customuser',
+                    name='college',
+                    field=models.CharField(blank=True, max_length=255, null=True),
+                ),
+            ],
         ),
     ]

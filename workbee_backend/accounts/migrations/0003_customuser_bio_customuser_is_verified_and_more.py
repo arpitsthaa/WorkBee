@@ -4,13 +4,11 @@ from django.db import migrations, models
 
 
 def add_profile_fields(apps, schema_editor):
-    CustomUser = apps.get_model('accounts', 'CustomUser')
-
     if schema_editor.connection.vendor == 'postgresql':
         statements = [
-            'ALTER TABLE accounts_customuser ADD COLUMN bio text NULL',
-            'ALTER TABLE accounts_customuser ADD COLUMN is_verified boolean NULL',
-            'ALTER TABLE accounts_customuser ADD COLUMN portfolio_url varchar(200) NULL',
+            'ALTER TABLE accounts_customuser ADD COLUMN IF NOT EXISTS bio text NULL',
+            'ALTER TABLE accounts_customuser ADD COLUMN IF NOT EXISTS is_verified boolean NULL',
+            'ALTER TABLE accounts_customuser ADD COLUMN IF NOT EXISTS portfolio_url varchar(200) NULL',
             "UPDATE accounts_customuser SET bio = '' WHERE bio IS NULL",
             'UPDATE accounts_customuser SET is_verified = TRUE WHERE is_verified IS NULL',
             "UPDATE accounts_customuser SET portfolio_url = '' WHERE portfolio_url IS NULL",
@@ -19,14 +17,12 @@ def add_profile_fields(apps, schema_editor):
             schema_editor.execute(statement)
         return
 
-    fields = (
-        ('bio', models.TextField(blank=True, default='')),
-        ('is_verified', models.BooleanField(default=True)),
-        ('portfolio_url', models.URLField(blank=True, default='')),
-    )
-    for field_name, field in fields:
-        field.set_attributes_from_name(field_name)
-        schema_editor.add_field(CustomUser, field)
+    for statement in [
+        'ALTER TABLE accounts_customuser ADD COLUMN bio text',
+        'ALTER TABLE accounts_customuser ADD COLUMN is_verified bool NOT NULL DEFAULT 1',
+        'ALTER TABLE accounts_customuser ADD COLUMN portfolio_url varchar(200) DEFAULT ""',
+    ]:
+        schema_editor.execute(statement)
 
 
 def remove_profile_fields(apps, schema_editor):
@@ -53,19 +49,29 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='customuser',
-            name='bio',
-            field=models.TextField(blank=True, default=''),
-        ),
-        migrations.AddField(
-            model_name='customuser',
-            name='is_verified',
-            field=models.BooleanField(default=True),
-        ),
-        migrations.AddField(
-            model_name='customuser',
-            name='portfolio_url',
-            field=models.URLField(blank=True, default=''),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunPython(
+                    add_profile_fields,
+                    remove_profile_fields,
+                ),
+            ],
+            state_operations=[
+                migrations.AddField(
+                    model_name='customuser',
+                    name='bio',
+                    field=models.TextField(blank=True, default=''),
+                ),
+                migrations.AddField(
+                    model_name='customuser',
+                    name='is_verified',
+                    field=models.BooleanField(default=True),
+                ),
+                migrations.AddField(
+                    model_name='customuser',
+                    name='portfolio_url',
+                    field=models.URLField(blank=True, default=''),
+                ),
+            ],
         ),
     ]
