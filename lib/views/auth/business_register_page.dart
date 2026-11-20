@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../auth_widgets.dart';
-import '../../auth_service.dart';
+import '../../widgets/auth_widgets.dart';
+import '../../services/auth_service.dart';
+import '../../controllers/auth_controller.dart';
 
 class BusinessRegistrationPage extends StatefulWidget {
   const BusinessRegistrationPage({super.key});
@@ -12,8 +13,8 @@ class BusinessRegistrationPage extends StatefulWidget {
 }
 
 class _BusinessRegistrationPageState extends State<BusinessRegistrationPage> {
+  final _controller = AuthController();
   final _formKey = GlobalKey<FormState>();
-  bool _isLoading = false;
 
   final _businessNameController = TextEditingController();
   final _contactPersonController = TextEditingController();
@@ -25,7 +26,19 @@ class _BusinessRegistrationPageState extends State<BusinessRegistrationPage> {
   final _confirmPasswordController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_refresh);
+  }
+
+  void _refresh() {
+    if (mounted) setState(() {});
+  }
+
+  @override
   void dispose() {
+    _controller.removeListener(_refresh);
+    _controller.dispose();
     _businessNameController.dispose();
     _contactPersonController.dispose();
     _emailController.dispose();
@@ -41,39 +54,42 @@ class _BusinessRegistrationPageState extends State<BusinessRegistrationPage> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_passwordController.text != _confirmPasswordController.text) {
-      WorkBeeAuthService.showSnackBar(
-        context,
-        'Passwords do not match',
-        isError: true,
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Passwords do not match'),
+          backgroundColor: Colors.redAccent,
+        ),
       );
       return;
     }
 
-    setState(() => _isLoading = true);
-
-    final result = await WorkBeeAuthService.post(
-      'register/business/',
-      {
-        'business_name': _businessNameController.text.trim(),
-        'contact_person': _contactPersonController.text.trim(),
-        'email': _emailController.text.trim().toLowerCase(),
-        'phone': _phoneController.text.trim(),
-        'location': _locationController.text.trim(),
-        'pan_number': _panController.text.trim(),
-        'password': _passwordController.text,
-      },
-      defaultSuccessMessage: 'Business account created! Please log in.',
-      defaultErrorMessage: 'Registration failed',
+    final result = await _controller.registerBusiness(
+      businessName: _businessNameController.text,
+      contactPerson: _contactPersonController.text,
+      email: _emailController.text,
+      phone: _phoneController.text,
+      location: _locationController.text,
+      panNumber: _panController.text,
+      password: _passwordController.text,
     );
 
     if (!mounted) return;
-    setState(() => _isLoading = false);
 
     if (result.success) {
-      WorkBeeAuthService.showSnackBar(context, result.message);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.message),
+          backgroundColor: WorkBeeTheme.successGreen,
+        ),
+      );
       Navigator.pop(context);
     } else {
-      WorkBeeAuthService.showSnackBar(context, result.message, isError: true);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.message),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
     }
   }
 
@@ -234,7 +250,7 @@ class _BusinessRegistrationPageState extends State<BusinessRegistrationPage> {
                     const SizedBox(height: 24),
                     WorkBeePrimaryButton(
                       text: 'Create Business Account',
-                      isLoading: _isLoading,
+                      isLoading: _controller.isLoading,
                       showArrow: true,
                       onPressed: _registerBusiness,
                     ),

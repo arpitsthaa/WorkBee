@@ -1,6 +1,5 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import '../../controllers/dashboard_controller.dart';
 
 class StudentDashboardPage extends StatefulWidget {
   final String accessToken;
@@ -12,6 +11,7 @@ class StudentDashboardPage extends StatefulWidget {
 }
 
 class _StudentDashboardPageState extends State<StudentDashboardPage> {
+  late final DashboardController _controller;
   static const Color primaryBlue = Color(0xFF2563EB);
   static const Color softBlueBg = Color(0xFFEFF6FF);
   static const Color darkNavy = Color(0xFF1E293B);
@@ -20,69 +20,40 @@ class _StudentDashboardPageState extends State<StudentDashboardPage> {
   static const Color cardBorder = Color(0xFFE2E8F0);
 
   int _selectedIndex = 0;
-  bool _isLoading = true;
-  String? _errorMessage;
-  Map<String, dynamic>? _dashboardData;
-
   @override
   void initState() {
     super.initState();
+    _controller = DashboardController(accessToken: widget.accessToken);
     _fetchDashboardData();
   }
 
   Future<void> _fetchDashboardData() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+    await _controller.loadDashboard();
+    if (mounted) setState(() {});
+  }
 
-    final url = Uri.parse('https://workbee-zi7l.onrender.com/api/student-dashboard/');
-
-    try {
-      final response = await http.get(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${widget.accessToken}',
-        },
-      ).timeout(const Duration(seconds: 12));
-
-      if (!mounted) return;
-
-      if (response.statusCode == 200) {
-        setState(() {
-          _dashboardData = jsonDecode(response.body);
-          _isLoading = false;
-        });
-      } else {
-        setState(() {
-          _errorMessage = 'Failed to load dashboard (${response.statusCode})';
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _errorMessage = 'Could not connect to server.';
-        _isLoading = false;
-      });
-    }
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = _controller.isLoading;
+    final errorMessage = _controller.errorMessage;
     return Scaffold(
       backgroundColor: lightBg,
       body: SafeArea(
-        child: _isLoading
+        child: isLoading
             ? const Center(child: CircularProgressIndicator(color: primaryBlue))
-            : _errorMessage != null
+            : errorMessage != null
             ? Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                _errorMessage!,
+                errorMessage,
                 style: const TextStyle(color: mutedGrey),
               ),
               const SizedBox(height: 12),
@@ -117,7 +88,7 @@ class _StudentDashboardPageState extends State<StudentDashboardPage> {
   }
 
   Widget _buildHomeContent() {
-    final data = _dashboardData!;
+    final data = _controller.dashboard!.data;
     final String firstName = data['first_name'] ?? 'Student';
     final String initials = data['initials'] ?? 'WB';
     final bool isVerified = data['is_verified'] ?? false;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../auth_widgets.dart';
-import '../../auth_service.dart';
+import '../../widgets/auth_widgets.dart';
+import '../../services/auth_service.dart';
+import '../../controllers/auth_controller.dart';
 
 class StudentRegistrationPage extends StatefulWidget {
   const StudentRegistrationPage({super.key});
@@ -11,15 +12,27 @@ class StudentRegistrationPage extends StatefulWidget {
 }
 
 class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
+  final _controller = AuthController();
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _collegeController = TextEditingController();
-  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_refresh);
+  }
+
+  void _refresh() {
+    if (mounted) setState(() {});
+  }
 
   @override
   void dispose() {
+    _controller.removeListener(_refresh);
+    _controller.dispose();
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
@@ -30,28 +43,30 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
   Future<void> _onCreateAccountPressed() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
-
-    final result = await WorkBeeAuthService.post(
-      'register/student/',
-      {
-        'name': _nameController.text.trim(),
-        'email': _emailController.text.trim().toLowerCase(),
-        'password': _passwordController.text,
-        'college': _collegeController.text.trim(),
-      },
-      defaultSuccessMessage: 'Registration successful! Please log in.',
-      defaultErrorMessage: 'Registration failed. Please check your details.',
+    final result = await _controller.registerStudent(
+      name: _nameController.text,
+      email: _emailController.text,
+      password: _passwordController.text,
+      college: _collegeController.text,
     );
 
     if (!mounted) return;
-    setState(() => _isLoading = false);
 
     if (result.success) {
-      WorkBeeAuthService.showSnackBar(context, result.message);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.message),
+          backgroundColor: WorkBeeTheme.successGreen,
+        ),
+      );
       Navigator.pop(context);
     } else {
-      WorkBeeAuthService.showSnackBar(context, result.message, isError: true);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.message),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
     }
   }
 
@@ -169,7 +184,7 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
                     const SizedBox(height: 24),
                     WorkBeePrimaryButton(
                       text: 'Create Student Account',
-                      isLoading: _isLoading,
+                      isLoading: _controller.isLoading,
                       showArrow: true,
                       onPressed: _onCreateAccountPressed,
                     ),

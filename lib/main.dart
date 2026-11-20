@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
-import 'pages/auth/LoginPage.dart';
+import 'views/auth/login_page.dart';
+import 'services/backend_warmup_service.dart';
+
 void main() {
   runApp(const MyApp());
+
+  // Wake Render in the background so it does not delay the app startup.
+  BackendWarmUpService.start();
 }
 
 class MyApp extends StatelessWidget {

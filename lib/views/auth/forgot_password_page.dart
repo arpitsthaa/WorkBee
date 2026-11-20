@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../auth_widgets.dart';
-import '../../auth_service.dart';
+import '../../widgets/auth_widgets.dart';
+import '../../services/auth_service.dart';
+import '../../controllers/auth_controller.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -10,12 +11,24 @@ class ForgotPasswordPage extends StatefulWidget {
 }
 
 class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
+  final _controller = AuthController();
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
-  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_refresh);
+  }
+
+  void _refresh() {
+    if (mounted) setState(() {});
+  }
 
   @override
   void dispose() {
+    _controller.removeListener(_refresh);
+    _controller.dispose();
     _emailController.dispose();
     super.dispose();
   }
@@ -23,24 +36,25 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   Future<void> _sendResetLink() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
-
-    final result = await WorkBeeAuthService.post(
-      'forgot-password/',
-      {'email': _emailController.text.trim().toLowerCase()},
-      defaultSuccessMessage:
-      'If an account exists, a reset link has been sent.',
-      defaultErrorMessage: 'Failed to send reset link',
-    );
+    final result = await _controller.sendResetLink(_emailController.text);
 
     if (!mounted) return;
-    setState(() => _isLoading = false);
 
     if (result.success) {
-      WorkBeeAuthService.showSnackBar(context, result.message);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.message),
+          backgroundColor: WorkBeeTheme.successGreen,
+        ),
+      );
       Navigator.pop(context);
     } else {
-      WorkBeeAuthService.showSnackBar(context, result.message, isError: true);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.message),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
     }
   }
 
@@ -100,7 +114,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                     const SizedBox(height: 24),
                     WorkBeePrimaryButton(
                       text: 'Send reset link',
-                      isLoading: _isLoading,
+                      isLoading: _controller.isLoading,
                       onPressed: _sendResetLink,
                     ),
                     const SizedBox(height: 18),
