@@ -53,29 +53,19 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.SeparateDatabaseAndState(
-            database_operations=[
-                migrations.RunPython(
-                    add_profile_fields,
-                    remove_profile_fields,
-                ),
-            ],
-            state_operations=[
-                migrations.AddField(
-                    model_name='customuser',
-                    name='bio',
-                    field=models.TextField(blank=True, default=''),
-                ),
-                migrations.AddField(
-                    model_name='customuser',
-                    name='is_verified',
-                    field=models.BooleanField(default=True),
-                ),
-                migrations.AddField(
-                    model_name='customuser',
-                    name='portfolio_url',
-                    field=models.URLField(blank=True, default=''),
-                ),
-            ],
+        migrations.AddField(
+            model_name='customuser',
+            name='bio',
+            field=models.TextField(blank=True, default=''),
+        ),
+        migrations.AddField(
+            model_name='customuser',
+            name='is_verified',
+            field=models.BooleanField(default=True),
+        ),
+        migrations.AddField(
+            model_name='customuser',
+            name='portfolio_url',
+            field=models.URLField(blank=True, default=''),
         ),
     ]
