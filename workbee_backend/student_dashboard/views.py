@@ -110,11 +110,11 @@ class GigListView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        business_name = (
-            request.user.business_name.strip()
-            if request.user.business_name.strip()
-            else request.user.first_name.strip() or 'Business'
-        )
+        business_profile = getattr(request.user, 'business_profile', None)
+        if business_profile:
+            business_name = business_profile.business_name
+        else:
+            business_name = request.user.first_name.strip() or 'Business'
 
         gig = Gig.objects.create(
             owner=request.user,
@@ -200,17 +200,26 @@ class StudentDashboardView(APIView):
         if last_name:
             initials += last_name[0].upper()
 
+        student_profile = getattr(user, 'student_profile', None)
+        college = student_profile.college if student_profile else user.college
+        bio = student_profile.bio if student_profile else user.bio
+        portfolio_url = (
+            student_profile.portfolio_url
+            if student_profile
+            else user.portfolio_url
+        )
+
         checks = [
             bool(user.first_name),
             bool(user.email),
-            bool(user.college),
-            bool(user.bio),
-            bool(user.portfolio_url),
+            bool(college),
+            bool(bio),
+            bool(portfolio_url),
         ]
         completion = int((sum(checks) / len(checks)) * 100)
-        if not user.portfolio_url:
+        if not portfolio_url:
             profile_tip = "Add one more portfolio sample to stand out."
-        elif not user.bio:
+        elif not bio:
             profile_tip = "Add a short bio so businesses know your skills."
         else:
             profile_tip = "Your profile is complete and ready for top gigs."
