@@ -21,9 +21,12 @@ def setup_roles(apps, schema_editor):
             user.groups.add(student_group)
             user.groups.remove(business_group)
             if not StudentProfile.objects.filter(user_id=user.pk).exists():
+                first_name = getattr(user, 'first_name', '') or ''
+                last_name = getattr(user, 'last_name', '') or ''
+                full_name = f"{first_name} {last_name}".strip()
                 StudentProfile.objects.create(
                     user_id=user.pk,
-                    full_name=user.get_full_name(),
+                    full_name=full_name,
                     college=getattr(user, 'college', '') or '',
                     is_verified=getattr(user, 'is_verified', True),
                     bio=getattr(user, 'bio', '') or '',

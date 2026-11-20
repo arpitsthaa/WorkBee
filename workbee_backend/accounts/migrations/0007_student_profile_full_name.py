@@ -27,7 +27,9 @@ def fill_student_names(apps, schema_editor):
 
     for profile in StudentProfile.objects.select_related('user').all():
         if not profile.full_name:
-            profile.full_name = profile.user.get_full_name()
+            first_name = getattr(profile.user, 'first_name', '') or ''
+            last_name = getattr(profile.user, 'last_name', '') or ''
+            profile.full_name = f"{first_name} {last_name}".strip()
             if not profile.full_name:
                 profile.full_name = profile.user.email.split('@')[0]
             profile.save(update_fields=['full_name'])
