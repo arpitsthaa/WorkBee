@@ -17,28 +17,26 @@ def create_profiles(apps, schema_editor):
                 is_active=True,
             )
         elif user.user_type == 'student':
-            StudentProfile.objects.get_or_create(
-                user_id=user.pk,
-                defaults={
-                    'college': getattr(user, 'college', '') or '',
-                    'is_verified': getattr(user, 'is_verified', True),
-                    'bio': getattr(user, 'bio', '') or '',
-                    'portfolio_url': getattr(user, 'portfolio_url', '') or '',
-                },
-            )
+            if not StudentProfile.objects.filter(user_id=user.pk).exists():
+                StudentProfile.objects.create(
+                    user_id=user.pk,
+                    college=getattr(user, 'college', '') or '',
+                    is_verified=getattr(user, 'is_verified', True),
+                    bio=getattr(user, 'bio', '') or '',
+                    portfolio_url=getattr(user, 'portfolio_url', '') or '',
+                )
         elif user.user_type == 'business':
             if not getattr(user, 'pan_number', ''):
                 continue
-            BusinessProfile.objects.get_or_create(
-                user_id=user.pk,
-                defaults={
-                    'business_name': getattr(user, 'business_name', '') or 'Business',
-                    'contact_person': getattr(user, 'contact_person', '') or '',
-                    'phone': getattr(user, 'phone', '') or '',
-                    'location': getattr(user, 'location', '') or '',
-                    'pan_number': user.pan_number,
-                },
-            )
+            if not BusinessProfile.objects.filter(user_id=user.pk).exists():
+                BusinessProfile.objects.create(
+                    user_id=user.pk,
+                    business_name=getattr(user, 'business_name', '') or 'Business',
+                    contact_person=getattr(user, 'contact_person', '') or '',
+                    phone=getattr(user, 'phone', '') or '',
+                    location=getattr(user, 'location', '') or '',
+                    pan_number=user.pan_number,
+                )
 
     CustomUser.objects.exclude(email__iexact='admin@gmail.com').exclude(
         email__isnull=True
@@ -50,6 +48,7 @@ def reverse_profiles(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
+    atomic = False
     dependencies = [
         ('accounts', '0005_unify_users_and_admin'),
     ]
