@@ -82,6 +82,15 @@ def reverse_noop(apps, schema_editor):
     pass
 
 
+def drop_business_profile_table(apps, schema_editor):
+    table_name = 'accounts_businessprofile'
+    with schema_editor.connection.cursor() as cursor:
+        existing_tables = schema_editor.connection.introspection.table_names(cursor)
+        if table_name in existing_tables:
+            quoted_table = schema_editor.quote_name(table_name)
+            cursor.execute(f'DROP TABLE {quoted_table}')
+
+
 class Migration(migrations.Migration):
     atomic = False
 
@@ -123,7 +132,14 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.RunPython(unify_business_profiles, reverse_noop),
-        migrations.DeleteModel(
-            name='BusinessProfile',
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunPython(drop_business_profile_table, reverse_noop),
+            ],
+            state_operations=[
+                migrations.DeleteModel(
+                    name='BusinessProfile',
+                ),
+            ],
         ),
     ]
