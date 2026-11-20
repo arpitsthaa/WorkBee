@@ -15,16 +15,16 @@ from pathlib import Path
 
 import dj_database_url
 from dotenv import load_dotenv
-from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR.parent / '.env')
 
-SECRET_KEY = os.environ.get('SECRET_KEY')
-if not SECRET_KEY:
-    raise ImproperlyConfigured('SECRET_KEY environment variable is required')
+SECRET_KEY = os.environ.get(
+    'SECRET_KEY',
+    'workbee-local-development-key-change-for-production',
+)
 
-DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
+DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
 ALLOWED_HOSTS = [
     host.strip()

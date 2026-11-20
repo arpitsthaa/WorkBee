@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: workbee-backend
+    runtime: python
+    buildCommand: pip install -r requirements.txt && python workbee_backend/manage.py migrate --noinput && python workbee_backend/manage.py collectstatic --noinput
+    startCommand: gunicorn workbee_backend.wsgi:application --chdir workbee_backend
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: workbee-zi7l.onrender.com
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://workbee-zi7l.onrender.com
+      - key: DATABASE_URL
+        sync: false

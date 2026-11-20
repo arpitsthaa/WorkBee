@@ -1,7 +1,7 @@
 from django.db import transaction
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import CustomUser, BusinessProfile
+from .models import CustomUser
 
 
 class StudentRegistrationSerializer(serializers.ModelSerializer):
@@ -56,7 +56,7 @@ class BusinessRegistrationSerializer(serializers.Serializer):
         pan = value.strip()
         if not pan.isdigit() or len(pan) != 9:
             raise serializers.ValidationError("PAN number must be exactly 9 digits.")
-        if BusinessProfile.objects.filter(pan_number=pan).exists():
+        if CustomUser.objects.filter(pan_number=pan).exists():
             raise serializers.ValidationError("This PAN number is already registered.")
         return pan
 
@@ -73,10 +73,6 @@ class BusinessRegistrationSerializer(serializers.Serializer):
             first_name=name[0],
             last_name=name[1] if len(name) > 1 else '',
             user_type='business',
-        )
-
-        BusinessProfile.objects.create(
-            user=user,
             business_name=validated_data['business_name'].strip(),
             contact_person=contact_name,
             phone=validated_data['phone'].strip(),
@@ -97,4 +93,5 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
         data['user_type'] = self.user.user_type
+        data['is_admin'] = self.user.is_staff and self.user.email.lower() == 'admin@gmail.com'
         return data

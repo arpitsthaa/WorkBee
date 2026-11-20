@@ -110,10 +110,10 @@ class GigListView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        business_name = getattr(
-            getattr(request.user, 'business_profile', None),
-            'business_name',
-            request.user.first_name or 'Business',
+        business_name = (
+            request.user.business_name.strip()
+            if request.user.business_name.strip()
+            else request.user.first_name.strip() or 'Business'
         )
 
         gig = Gig.objects.create(
@@ -235,10 +235,31 @@ class StudentDashboardView(APIView):
         return Response({
             'first_name': first_name,
             'initials': initials,
+            'email': user.email,
             'is_verified': getattr(user, 'is_verified', True),
             'profile_completion': completion,
             'profile_tip': profile_tip,
             'recommended_gigs': recommended_gigs,
+            'applications_detail': [
+                {
+                    'gig_title': application.gig.title,
+                    'business_name': application.gig.business_name,
+                    'status': application.status,
+                    'status_label': dict(Application.STATUS_CHOICES).get(application.status, application.status),
+                    'applied_at': application.applied_at.isoformat(),
+                }
+                for application in applications.select_related('gig').order_by('-applied_at')
+            ],
+            'projects_detail': [
+                {
+                    'gig_title': project.gig.title,
+                    'business_name': project.gig.business_name,
+                    'status': project.status,
+                    'status_label': dict(Project.STATUS_CHOICES).get(project.status, project.status),
+                    'rating': float(project.rating) if project.rating is not None else None,
+                }
+                for project in projects.select_related('gig').order_by('-id')
+            ],
             'applications': {
                 'total': applications.count(),
                 'pending': applications.filter(status='pending').count(),

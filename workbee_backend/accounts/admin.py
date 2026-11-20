@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, BusinessProfile
+from .models import CustomUser
 
 
 @admin.register(CustomUser)
@@ -11,7 +11,10 @@ class CustomUserAdmin(UserAdmin):
     ordering = ('email',)
     fieldsets = UserAdmin.fieldsets + (
         ('WorkBee profile', {
-            'fields': ('user_type', 'college', 'is_verified', 'bio', 'portfolio_url'),
+            'fields': (
+                'user_type', 'college', 'is_verified', 'bio', 'portfolio_url',
+                'business_name', 'contact_person', 'phone', 'location', 'pan_number',
+            ),
         }),
     )
     add_fieldsets = (
@@ -20,9 +23,3 @@ class CustomUserAdmin(UserAdmin):
             'fields': ('email', 'username', 'password1', 'password2', 'user_type', 'is_active', 'is_staff'),
         }),
     )
-
-
-@admin.register(BusinessProfile)
-class BusinessProfileAdmin(admin.ModelAdmin):
-    list_display = ('business_name', 'contact_person', 'phone', 'location', 'pan_number', 'created_at')
-    search_fields = ('business_name', 'contact_person', 'phone', 'location', 'pan_number')
