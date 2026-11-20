@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../controllers/dashboard_controller.dart';
 import '../auth/login_page.dart';
+import 'gigs_page.dart';
 
 class StudentDashboardPage extends StatefulWidget {
   final String accessToken;
@@ -80,6 +81,11 @@ class _StudentDashboardPageState extends State<StudentDashboardPage> {
                   vertical: 16,
                 ),
                 child: _buildProfileContent(),
+              )
+            : _selectedIndex == 1
+            ? StudentGigsPage(
+                gigs: _controller.dashboard?.data['recommended_gigs'] ?? [],
+                onRefresh: _fetchDashboardData,
               )
             : RefreshIndicator(
                 onRefresh: _fetchDashboardData,
