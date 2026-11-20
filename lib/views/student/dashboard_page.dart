@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../../controllers/dashboard_controller.dart';
+import '../auth/login_page.dart';
 
 class StudentDashboardPage extends StatefulWidget {
   final String accessToken;
@@ -49,39 +51,48 @@ class _StudentDashboardPageState extends State<StudentDashboardPage> {
             ? const Center(child: CircularProgressIndicator(color: primaryBlue))
             : errorMessage != null
             ? Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                errorMessage,
-                style: const TextStyle(color: mutedGrey),
-              ),
-              const SizedBox(height: 12),
-              ElevatedButton(
-                onPressed: _fetchDashboardData,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryBlue,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      errorMessage,
+                      style: const TextStyle(color: mutedGrey),
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: _fetchDashboardData,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryBlue,
+                      ),
+                      child: const Text(
+                        'Retry',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ],
                 ),
-                child: const Text(
-                  'Retry',
-                  style: TextStyle(color: Colors.white),
+              )
+            : _selectedIndex == 4
+            ? SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
                 ),
-              ),
-            ],
-          ),
-        )
+                child: _buildProfileContent(),
+              )
             : RefreshIndicator(
-          onRefresh: _fetchDashboardData,
-          color: primaryBlue,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 16,
-            ),
-            child: _buildHomeContent(),
-          ),
-        ),
+                onRefresh: _fetchDashboardData,
+                color: primaryBlue,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
+                  child: _buildHomeContent(),
+                ),
+              ),
       ),
       bottomNavigationBar: _buildBottomNavBar(),
     );
@@ -134,10 +145,7 @@ class _StudentDashboardPageState extends State<StudentDashboardPage> {
                     ),
                     Text(
                       'Bee Busy Be Paid',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: mutedGrey,
-                      ),
+                      style: TextStyle(fontSize: 11, color: mutedGrey),
                     ),
                   ],
                 ),
@@ -321,7 +329,7 @@ class _StudentDashboardPageState extends State<StudentDashboardPage> {
               child: _buildStatCard(
                 title: '${apps['total'] ?? 0} applications',
                 subtitle:
-                '${apps['pending'] ?? 0} pending · ${apps['shortlisted'] ?? 0} shortlisted',
+                    '${apps['pending'] ?? 0} pending · ${apps['shortlisted'] ?? 0} shortlisted',
               ),
             ),
             const SizedBox(width: 12),
@@ -329,7 +337,7 @@ class _StudentDashboardPageState extends State<StudentDashboardPage> {
               child: _buildStatCard(
                 title: '${projects['total'] ?? 0} projects',
                 subtitle:
-                '${projects['active'] ?? 0} active · ${projects['approved'] ?? 0} approved',
+                    '${projects['active'] ?? 0} active · ${projects['approved'] ?? 0} approved',
               ),
             ),
           ],
@@ -470,6 +478,96 @@ class _StudentDashboardPageState extends State<StudentDashboardPage> {
     );
   }
 
+  Widget _buildProfileContent() {
+    final data = _controller.dashboard!.data;
+    final String firstName = data['first_name'] ?? 'Student';
+    final String initials = data['initials'] ?? 'WB';
+    final String email = data['email'] ?? '';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Profile',
+          style: TextStyle(
+            fontSize: 26,
+            fontWeight: FontWeight.bold,
+            color: darkNavy,
+          ),
+        ),
+        const SizedBox(height: 20),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: cardBorder),
+          ),
+          child: Column(
+            children: [
+              CircleAvatar(
+                radius: 38,
+                backgroundColor: softBlueBg,
+                child: Text(
+                  initials,
+                  style: const TextStyle(
+                    color: primaryBlue,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 22,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                firstName,
+                style: const TextStyle(
+                  color: darkNavy,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (email.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  email,
+                  style: const TextStyle(color: mutedGrey, fontSize: 13),
+                ),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: OutlinedButton.icon(
+            onPressed: _logout,
+            icon: const Icon(Icons.logout_rounded),
+            label: const Text(
+              'Log out',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+            ),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFFDC2626),
+              side: const BorderSide(color: Color(0xFFFCA5A5)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _logout() {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+      (route) => false,
+    );
+  }
+
   Widget _buildBottomNavBar() {
     final items = [
       {
@@ -529,7 +627,7 @@ class _StudentDashboardPageState extends State<StudentDashboardPage> {
                     ),
                     child: Icon(
                       (isSelected ? item['activeIcon'] : item['icon'])
-                      as IconData,
+                          as IconData,
                       color: isSelected ? primaryBlue : mutedGrey,
                       size: 22,
                     ),
@@ -539,8 +637,9 @@ class _StudentDashboardPageState extends State<StudentDashboardPage> {
                     item['label'] as String,
                     style: TextStyle(
                       fontSize: 11,
-                      fontWeight:
-                      isSelected ? FontWeight.w600 : FontWeight.normal,
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.normal,
                       color: isSelected ? primaryBlue : mutedGrey,
                     ),
                   ),
